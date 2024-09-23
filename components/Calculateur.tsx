@@ -1,24 +1,18 @@
 import React, {useState} from 'react';
-import {Button, Text, TextInput, View} from 'react-native';
-import {REDUCTIONS, TAXES} from '@/constants/Commande'
+import { REDUCTIONS, TAXES } from '@/constants/Commande';
+import { TextField, Button, MenuItem, Select, InputLabel, FormControl, Typography, Box } from '@mui/material';
 
 function calculerPrixTotal(nombreArticles, prixParArticle, etat){
     const totalBrut = nombreArticles * prixParArticle;
     const totalReduit = totalBrut - recupererMontantReduction(totalBrut);
-    console.log("nb articles " + nombreArticles);
-    console.log("prix articles " + prixParArticle);
-    console.log("code " + etat);
-    console.log("total brut " + totalBrut);
-    console.log("total reduit " + totalReduit);
     return totalReduit + recupererMontantTaxe(totalReduit, etat);
 }
 
 function recupererMontantReduction(prix){
-    let tauxReduction = 0
-    for(const reduction of REDUCTIONS)
-    {
+    let tauxReduction = 0;
+    for(const reduction of REDUCTIONS){
         if(prix >= reduction.valeur){
-            tauxReduction =  reduction.taux * prix;
+            tauxReduction = reduction.taux * prix;
             break;
         }
     }
@@ -26,8 +20,6 @@ function recupererMontantReduction(prix){
 }
 
 function recupererMontantTaxe(prix, tauxTaxe){
-    console.log('prix ' + prix)
-    console.log('taux taxe : ' + tauxTaxe)
     return prix * tauxTaxe;
 }
 
@@ -39,48 +31,73 @@ export default function Calculateur () {
 
     const lancerCalcul = () => {
         const calculatedResult = calculerPrixTotal(nombreArticles, prixParArticle, codeEtat);
-        console.log(calculatedResult)
         setPrixCommande(calculatedResult);
     };
 
-    function handleCodeEtatChange(code) {
-        setCodeEtat(code.target.value);
-    }
+    const handleCodeEtatChange = (event) => {
+        setCodeEtat(event.target.value);
+    };
 
     return (
-        <div>
-            <Text>Nombre d'articles :</Text>
-            <TextInput
-                keyboardType="numeric"
-                onChangeText={text => setNombreArticles(parseInt(text) || 0)}
-            />
+        <Box
+            display="flex"
+            flexDirection="column"
+            alignItems="center"
+            justifyContent="center"
+            sx={{ marginTop: 4, padding: 2, boxShadow: 3, borderRadius: 2, maxWidth: 400, margin: 'auto' }}
+        >
+            <Typography variant="h4" gutterBottom>Calculateur de prix</Typography>
 
-            <Text>Prix par article :</Text>
-            <TextInput
-                keyboardType="numeric"
-                onChangeText={text => setPrixParArticle(parseFloat(text) || 0)}
-            />
+            <FormControl fullWidth margin="normal">
+                <TextField
+                    label="Nombre d'articles"
+                    type="number"
+                    value={nombreArticles}
+                    onChange={(e) => setNombreArticles(parseInt(e.target.value) || 0)}
+                    variant="outlined"
+                    slotProps={{ htmlInput: {min:0}}}
+                />
+            </FormControl>
 
-            <select
-                value={codeEtat}  // Stocke la valeur sélectionnée
-                onChange={handleCodeEtatChange}  // Fonction pour gérer le changement
-            >
-                {TAXES.map((tax) => (
-                    <option key={tax.id} value={tax.taux}>
-                        {tax.code}
-                    </option>
-                ))}
-            </select>
+            <FormControl fullWidth margin="normal">
+                <TextField
+                    label="Prix par article"
+                    type="number"
+                    value={prixParArticle}
+                    onChange={(e) => setPrixParArticle(parseFloat(e.target.value) || 0)}
+                    variant="outlined"
+                    slotProps={{ htmlInput: {min:0}}}
+                />
+            </FormControl>
 
+            <FormControl fullWidth margin="normal" variant={"outlined"}>
+                <InputLabel id="select-etat-label">État</InputLabel>
+                <Select
+                    labelId="select-etat-label"
+                    value={codeEtat}
+                    onChange={handleCodeEtatChange}
+                    variant="outlined"
+                    label="État"
+                >
+                    {TAXES.map((tax) => (
+                        <MenuItem key={tax.id} value={tax.taux}>
+                            {tax.code}
+                        </MenuItem>
+                    ))}
+                </Select>
+            </FormControl>
 
-            <Button title="Calculer" onPress={lancerCalcul}/>
+            <Button variant="contained" color="primary" onClick={lancerCalcul} sx={{ marginTop: 2 }}>
+                Calculer
+            </Button>
 
             {prixCommande > 0 && (
-                <View>
-                    <Text>Prix de la commande : {prixCommande} $</Text>
-                </View>
+                <Box mt={2}>
+                    <Typography variant="h6">
+                        Prix de la commande : {prixCommande.toFixed(2)} $
+                    </Typography>
+                </Box>
             )}
-        </div>
+        </Box>
     );
 }
-
